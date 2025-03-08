@@ -1,0 +1,127 @@
+<html>
+    <head>
+        <title>Hydroponic Mixer UI</title>
+        <script type="text/javascript" src="https://cdn.canvasjs.com/canvasjs.min.js"></script>
+    </head>
+
+    <body onload="onload()" style="width: 1000px">
+        <script type="text/javascript">
+const onload = () => {
+    setInterval(plotValuesOverTime, 60*1000);
+    plotValuesOverTime();
+};
+
+function plotValuesOverTime() {
+    fetch('/data.csv')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Not a 2xx response", {cause: response});
+        } else {
+             return response.text();
+        }
+    })
+    .then(dataText => {
+        const parsedData = [];
+        const dataRows = dataText.split('\n');
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate()-30); // look 30 days back
+
+        for (let i = 0; i < dataRows.length; i++) {
+            const dataRow = dataRows[i];
+            if (dataRow[0] === '#') continue;
+
+            const rowValues = dataRow.split(',').map(str => str.trim());
+
+            const dataDate = new Date(Date.parse(rowValues[0]));
+            if (dataDate == NaN) continue;
+            if (dataDate < cutoffDate) continue;
+            parsedData.push({
+                date: dataDate,
+                tds: parseInt(rowValues[1]),
+                ph: parseFloat(rowValues[2]),
+                temperature: parseFloat(rowValues[3]),
+                tankLevel: parseFloat(rowValues[4]),
+            });
+        }
+
+        var chart = new CanvasJS.Chart(
+            "chartContainer", {
+            title: {
+                text: "Recent Stats"
+            },
+            toolTip: {
+                shared: true
+            },
+            axisX: {
+                title: "Timeline",
+                gridThickness: 1
+            },
+            axisY: [{
+                title: "Tank level %",
+                minimum: 0,
+                maximum: 100
+            },
+            {
+                title: "TDS",
+                minimum: 0,
+                maximum: 1300
+            },
+            {
+                title: "PH",
+                minimum: 1,
+                maximum: 14
+            },
+            {
+                title: "Temperature",
+                minimum: 0,
+                maximum: 40
+            }],
+            data: [{
+                axisYIndex: 0,
+		        showInLegend: true,
+                type: "line",
+                name: "Tank level %",
+                dataPoints: parsedData.map(row => ({x: row.date, y: row.tankLevel}))
+            },
+            {
+                axisYIndex: 1,
+		        showInLegend: true,
+                type: "line",
+                name: "TDS",
+                dataPoints: parsedData.map(row => ({x: row.date, y: row.tds}))
+            },
+            {
+                axisYIndex: 2,
+		        showInLegend: true,
+                type: "line",
+                name: "PH",
+                dataPoints: parsedData.map(row => ({x: row.date, y: row.ph}))
+            },
+            {
+                axisYIndex: 3,
+		        showInLegend: true,
+                type: "line",
+                name: "Temperature",
+                dataPoints: parsedData.map(row => ({x: row.date, y: row.temperature}))
+            }
+            ]
+        });
+        chart.render();
+
+    });
+}
+        </script>
+
+        <h1>Status</h1>
+
+        <div id="chartContainer" style="height: 500px; width: 100%;"></div>
+
+        <div style="padding: 20px">
+            <a href="/data.csv">Download data.csv</a>
+        </div>
+        <div style="padding: 20px">
+            <button onclick="fetch('/mixnow')">MIX NOW</button>
+        </div>
+
+    </body>
+</html>

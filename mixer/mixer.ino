@@ -73,8 +73,18 @@ void setup() {
 
 
 void loop() {
-  if (Serial.read() != 'M') {
+  char serialCommand = Serial.read();
+
+  if (serialCommand != 'R' and serialCommand != 'M') {
     delay(1000);
+    return;
+  }
+  
+  if (serialCommand == 'R') {
+
+    Serial.print("STATUS Temperature=");
+    Serial.println(temperatureRead());
+    
     return;
   }
   
@@ -93,7 +103,7 @@ void loop() {
   Serial.print(tds);
   Serial.print(" PH=");
   Serial.print(ph);
-  Serial.print(" Temp=");
+  Serial.print(" Temperature=");
   Serial.println(temperature);
 
   // TODO if needs PH correction...

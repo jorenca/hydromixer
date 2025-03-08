@@ -1,0 +1,31 @@
+{
+  "name": "hydromixer-data-server",
+  "version": "1.0.0",
+  "description": "Web UI for hydromixer",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jorenca/hydromixer.git"
+  },
+  "keywords": [
+    "hydroponics",
+    "monitor",
+    "mixer",
+    "data",
+    "logger"
+  ],
+  "author": "Georgi Gaydarov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jorenca/hydromixer/issues"
+  },
+  "homepage": "https://github.com/jorenca/hydromixer#readme",
+  "dependencies": {
+    "express": "^4.21.2",
+    "lodash": "^4.17.21",
+    "serialport": "^13.0.0"
+  }
+}
