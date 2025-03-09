@@ -13,7 +13,7 @@ function mixNowFn() {
 }
 function reportNowFn() {
   if (!comPort) return;
-  comPort.write('M\n');
+  comPort.write('R\n');
   comPort.flush();
 }
 setInterval(mixNowFn, 8*60*60*1000);
