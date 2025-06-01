@@ -50,6 +50,12 @@ function writeLatestStatus() {
 }
 
 function reportMixerStatus(statusLine) {
+  if (statusLine.startsWith('ERROR ')) {
+    console.error(statusLine);
+    fs.appendFile('./public/log.csv', statusLine + '\n', console.error);
+    return;
+  }
+
   if (!statusLine.startsWith('STATUS ')) {
     console.log('Mixer non-status line:', statusLine);
     return;
