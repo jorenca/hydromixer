@@ -50,9 +50,9 @@ function writeLatestStatus() {
 }
 
 function reportMixerStatus(statusLine) {
-  if (statusLine.startsWith('ERROR ')) {
+  if (statusLine.startsWith('ERROR ') || statusLine.startsWith('INFO ')) {
     console.error(statusLine);
-    fs.appendFile('./public/log.csv', statusLine + '\n', console.error);
+    fs.appendFile('./public/log.txt', statusLine + '\n', console.error);
     return;
   }
 

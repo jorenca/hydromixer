@@ -9,6 +9,8 @@
 const onload = () => {
     setInterval(plotValuesOverTime, 60*1000);
     plotValuesOverTime();
+    setInterval(loadLogs, 30*1000);
+    loadLogs();
 };
 
 function plotValuesOverTime() {
@@ -110,6 +112,23 @@ function plotValuesOverTime() {
 
     });
 }
+
+function loadLogs() {
+    fetch('/log.txt')
+    .then(response => {
+        if (!response.ok) {
+            const logContainer = document.getElementById('logContainer')
+            logContainer.textContent = JSON.stringify(response,  null, 2);
+            logContainer.style.backgroundColor = "red";
+
+            throw new Error("Not a 2xx response", {cause: response});
+        }
+        return response.text();
+    })
+    .then(logText => {
+        document.getElementById('logContainer').textContent = logText;
+    });
+}
         </script>
 
         <h1>Status</h1>
@@ -121,6 +140,11 @@ function plotValuesOverTime() {
         </div>
         <div style="padding: 20px">
             <button onclick="fetch('/mixnow')">MIX NOW</button>
+        </div>
+        <div style="padding: 20px">
+            <pre id="logContainer" style="max-height: 20vh; overflow: auto">
+                Logs go here when loaded...
+            </pre>
         </div>
 
     </body>
