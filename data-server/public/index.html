@@ -9,8 +9,12 @@
 const onload = () => {
     setInterval(plotValuesOverTime, 60*1000);
     plotValuesOverTime();
+
     setInterval(loadLogs, 30*1000);
     loadLogs();
+
+    setInterval(showCurrentState, 10*1000);
+    showCurrentState();
 };
 
 function plotValuesOverTime() {
@@ -115,19 +119,40 @@ function plotValuesOverTime() {
 
 function loadLogs() {
     fetch('/log.txt')
-    .then(response => {
-        if (!response.ok) {
-            const logContainer = document.getElementById('logContainer')
-            logContainer.textContent = JSON.stringify(response,  null, 2);
-            logContainer.style.backgroundColor = "red";
+        .then(response => {
+            if (!response.ok) {
+                const logContainer = document.getElementById('logContainer')
+                logContainer.textContent = JSON.stringify(response,  null, 2);
+                logContainer.style.backgroundColor = "red";
 
-            throw new Error("Not a 2xx response", {cause: response});
-        }
-        return response.text();
-    })
-    .then(logText => {
-        document.getElementById('logContainer').textContent = logText;
-    });
+                throw new Error("Not a 2xx response", {cause: response});
+            }
+            return response.text();
+        })
+        .then(logText => {
+            document.getElementById('logContainer').textContent = logText;
+        });
+}
+
+function showCurrentState() {
+    fetch('/current')
+        .then(response => {
+            if (!response.ok) {
+                //const logContainer = document.getElementById('logContainer')
+                //logContainer.textContent = JSON.stringify(response,  null, 2);
+                //logContainer.style.backgroundColor = "red";
+
+                throw new Error("Not a 2xx response", {cause: response});
+            }
+            return response.json();
+        })
+        .then(response => {
+            const tankLevel = response.tanklevel == null ? 'N/A' : response.tanklevel + '%';
+            document.getElementById('tank-level-indicator').textContent = tankLevel;
+
+            const tankTemperature = response.temperature == null ? 'N/A' : response.temperature + 'C';
+            document.getElementById('tank-temp-indicator').textContent = tankTemperature;
+        });
 }
         </script>
 
@@ -135,17 +160,32 @@ function loadLogs() {
 
         <div id="chartContainer" style="height: 500px; width: 100%;"></div>
 
-        <div style="padding: 20px">
-            <a href="/data.csv">Download data.csv</a>
+
+        <div style="display: flex; justify-content: space-around; padding: 10px; margin-top: 5vh">
+            <div>
+                Tank level: <span id="tank-level-indicator"></span>
+            </div>
+
+            <div>
+                Tank temperature: <span id="tank-temp-indicator"></span>
+            </div>
+
+            <div>
+                <button onclick="fetch('/mixnow')">MIX NOW</button>
+            </div>
+
+            <div>
+                <a href="/data.csv">Download data.csv</a>
+            </div>
         </div>
-        <div style="padding: 20px">
-            <button onclick="fetch('/mixnow')">MIX NOW</button>
-        </div>
-        <div style="padding: 20px">
+
+        <fieldset style="padding: 20px">
+            <legend>Logs</legend>
+
             <pre id="logContainer" style="max-height: 20vh; overflow: auto">
                 Logs go here when loaded...
             </pre>
-        </div>
+        </fieldset>
 
     </body>
 </html>

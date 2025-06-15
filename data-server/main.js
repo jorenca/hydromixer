@@ -4,7 +4,13 @@ const { SerialPort, ReadlineParser } = require('serialport');
 const _ = require('lodash');
 
 
+const REPORTING_INTERVAL_MS = 20*1000
+const REPORTING_SAVE_INTERVAL_MS = 3*60*1000
+const MIXING_INTERVAL_MS = 8*60*60*1000 // 8h
+
+
 let comPort = null;
+
 
 function mixNowFn() {
   if (!comPort) return;
@@ -16,8 +22,8 @@ function reportNowFn() {
   comPort.write('R\n');
   comPort.flush();
 }
-setInterval(mixNowFn, 8*60*60*1000);
-setInterval(reportNowFn, 3*60*1000);
+setInterval(mixNowFn, MIXING_INTERVAL_MS);
+setInterval(reportNowFn, REPORTING_INTERVAL_MS);
 
 
 const app = express();
@@ -25,6 +31,7 @@ const port = 4000;
 
 app.use(express.static('public'));
 app.get('/mixnow', (req, res) => { mixNowFn(); res.send('ok'); });
+app.get('/current', (req, res) => getCurrentState(res));
 
 app.listen(port, () => console.log(`Web app running on port ${port}`));
 
@@ -37,6 +44,12 @@ let latestStatus = {
   tanklevel: NaN
 };
 
+
+function getCurrentState(response) {
+  response.send(latestStatus);
+}
+
+
 function writeLatestStatus() {
 
   const csvStatusLine = [
@@ -48,6 +61,8 @@ function writeLatestStatus() {
   ].join(',');
   fs.appendFile('./public/data.csv', csvStatusLine + '\n', console.error);
 }
+
+const writeLatestStatusThrottled = _.throttle(writeLatestStatus, REPORTING_SAVE_INTERVAL_MS);
 
 function reportMixerStatus(statusLine) {
   if (statusLine.startsWith('ERROR ') || statusLine.startsWith('INFO ')) {
@@ -75,7 +90,7 @@ function reportMixerStatus(statusLine) {
     ...latestStatus,
     ...newStatus
   };
-  writeLatestStatus();
+  writeLatestStatusThrottled();
 }
 
 function connectToMixerBoard(comName) {
