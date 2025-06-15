@@ -64,15 +64,23 @@ function writeLatestStatus() {
 
 const writeLatestStatusThrottled = _.throttle(writeLatestStatus, REPORTING_SAVE_INTERVAL_MS);
 
-function reportMixerStatus(statusLine) {
-  if (statusLine.startsWith('ERROR ') || statusLine.startsWith('INFO ')) {
+
+function writeLogLine(statusLine) {
+
+    statusLine = `[${new Date().toUTCString()}] ${statusLine}`;
     console.error(statusLine);
     fs.appendFile('./public/log.txt', statusLine + '\n', console.error);
+}
+
+
+function reportMixerStatus(statusLine) {
+  if (statusLine.startsWith('ERROR ') || statusLine.startsWith('INFO ')) {
+    writeLogLine(statusLine);
     return;
   }
 
   if (!statusLine.startsWith('STATUS ')) {
-    console.log('Mixer non-status line:', statusLine);
+    writeLogLine('Mixer non-status line: ' + statusLine);
     return;
   }
 
@@ -119,7 +127,7 @@ SerialPort.list()
       }).first();
 
       if (!comDevice) {
-        console.error('Mixer board not connected!');
+        writeLogLine('Mixer board not connected!');
         return;
       }
       connectToMixerBoard(comDevice.path);
